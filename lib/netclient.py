@@ -77,3 +77,9 @@ class Server_Connection():
             return p.response["peers"]
         else:
             raise RuntimeError("Da hell")
+    
+    def offer_file(self, file_name: str, file_size: int, peer_id: int) -> bool:
+        p = packet_factory.new_file_packet(file_name, file_size, peer_id)
+        p = self.send_packet(p)
+        if "accepted" in p.response:
+            return p.response["accepted"]

@@ -14,6 +14,7 @@ class PACKET_TYPE(enum.Enum):
     KEEP = "KEEP"
     PING = "PING"
     LIST = "LIST"
+    FILE = "FILE"
 
     def __eq__(self, __o: object) -> bool:
         return self.value == __o or ("value" in __o.__dir__() and __o.value == self.value)
@@ -33,12 +34,15 @@ class packet_factory:
 
     def new_list_packet():
         return packet(PACKET_TYPE.LIST)
-    
+
     def new_keep_packet():
         return packet(PACKET_TYPE.KEEP)
 
     def new_ping_packet(_time: float):
         return packet(PACKET_TYPE.PING, params={"time": _time})
+
+    def new_file_packet(_name: str, _size: int, _peer_id: int):
+        return packet(PACKET_TYPE.FILE, params={"name": _name, "size": _size, "peer_id": _peer_id})
 
 class packet_encoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
