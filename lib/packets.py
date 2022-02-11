@@ -1,8 +1,13 @@
 from collections import namedtuple
 from dataclasses import dataclass, field
-import enum, json
+import enum, json, random
 from typing import Any
 
+
+i = 0
+def next_int():
+    global i;i = i+1
+    return i-1
 
 class PACKET_TYPE(enum.Enum):
     BASE = "BASE"
@@ -15,6 +20,7 @@ class PACKET_TYPE(enum.Enum):
 @dataclass
 class packet:
     name : PACKET_TYPE
+    id : int = field(default_factory=next_int)
     params : dict = field(default_factory=dict)
     response : dict = field(default_factory=dict)
     responded : bool = False
