@@ -3,7 +3,9 @@ from struct import pack
 from packets import packet_factory, packet, dumps_packet, loads_packet
 from dataclasses import dataclass
 
+RECV_SIZE = 1024
 PACKET_TIMEOUT = 10
+
 
 @dataclass
 class Peer():
@@ -24,6 +26,12 @@ class Relay_Server():
         self.host = (host, port)
         self.sock.connect(self.host)
         self.connected = True
+
+    def start_recv_loop(self, stop_event : threading.Event):
+        while not stop_event.is_set():
+            r = self.sock.recv(RECV_SIZE).decode("utf-8")
+            rs = loads_packet(r)
+            self.handle_packet(rs)
 
     def handle_packet(self, packet : packet) -> None:
         if packet.responded == False:
