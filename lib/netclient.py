@@ -20,6 +20,7 @@ class Server_Connection():
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.host = None
         self.connected = False
+        self.recv_loop_ref = None
         self.pending_packet_dict : dict [int, tuple[packet, float, threading.Event]]= {}
 
     def connect(self, host: str, port: int) -> None:
@@ -27,7 +28,11 @@ class Server_Connection():
         self.sock.connect(self.host)
         self.connected = True
 
-    def start_recv_loop(self, stop_event : threading.Event):
+    def start_recv_loop(self, stop_event : threading.Event) -> None:
+        self.recv_loop_ref = threading.Thread(target=self.recv_loop, args=(stop_event,))
+        self.recv_loop_ref.start()
+
+    def recv_loop(self, stop_event : threading.Event):
         while not stop_event.is_set():
             r = self.sock.recv(RECV_SIZE).decode("utf-8")
             rs = loads_packet(r)
@@ -47,8 +52,8 @@ class Server_Connection():
     def send_packet(self, packet : packet) -> packet:
         evt = threading.Event()
         text = dumps_packet(packet)                     #Packet to json
-        self.sock.send(bytes(text, encoding="utf-8"))   #Send packet
         self.pending_packet_dict[packet.id] = (packet, time.time(), evt)    #Save packet to write response when it comes back
+        self.sock.send(bytes(text, encoding="utf-8"))   #Send packet
         if evt.wait(timeout=PACKET_TIMEOUT):            #Not timed out
             if not packet.responded:
                 raise RuntimeError(f"Packet: {packet} marked as responded but has no response.")
@@ -56,6 +61,14 @@ class Server_Connection():
         else:                                           #Timed out
             raise TimeoutError(f"Packet: {packet} did not get answered in {PACKET_TIMEOUT} seconds.")
 
+    def keep_alive(self, ) -> None:
+        p = packet_factory.new_keep_packet()
+        p = self.send_packet(p)
+
+    def get_ping(self, ) -> float:
+        p = packet_factory.new_ping_packet(time.time())
+        p = self.send_packet(p)
+        time.time() - p.params["time"]
 
     def get_peers(self ,) -> list[Peer]:
         p = packet_factory.new_list_packet()

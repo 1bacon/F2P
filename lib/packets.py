@@ -11,6 +11,8 @@ def next_int():
 
 class PACKET_TYPE(enum.Enum):
     BASE = "BASE"
+    KEEP = "KEEP"
+    PING = "PING"
     LIST = "LIST"
     CHAT = "CHAT"
 
@@ -36,6 +38,11 @@ class packet_factory:
     def new_chat_packet(_msg : str = ""):
         return packet(PACKET_TYPE.CHAT, params={"msg":_msg})
 
+    def new_keep_packet():
+        return packet(PACKET_TYPE.KEEP)
+
+    def new_ping_packet(_time: float):
+        return packet(PACKET_TYPE.PING, params={"time": _time})
 
 class packet_encoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:

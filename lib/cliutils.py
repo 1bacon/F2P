@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from netutils import Server_Connection
+from netclient import Server_Connection
 import cmd2
 
 class shell(cmd2.Cmd):
