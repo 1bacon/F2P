@@ -1,7 +1,7 @@
 import socket
 import time
 import threading
-from struct import pack
+from lib.packets import PACKET_TYPE
 from packets import packet_factory, packet, dumps_packet, loads_packet
 from dataclasses import dataclass
 
@@ -43,6 +43,11 @@ class Server_Connection():
             self.handle_packet(rs)
 
     def handle_packet(self, packet: packet) -> None:
+        if packet.server_side:
+            # Only FILE should be serveside
+            if not packet.name == PACKET_TYPE.FILE:
+                raise RuntimeError(f"Recieved server-side packet other than FILE. p={packet}")
+            return self.server_side_file(packet)
         if not packet.responded:
             raise RuntimeError(
                 f"Recieved packet without responded Flag. p={packet}")
@@ -70,6 +75,10 @@ class Server_Connection():
             raise TimeoutError(
                 f"Packet: {packet} did not get answered in {PACKET_TIMEOUT} seconds.")
 
+    def server_side_file(self, packet: packet) -> None:
+        t = f"{packet.params['peer_id']} offered file: '{packet.params['name']}', size: {packet.params['size']}"
+        print(t)
+
     def keep_alive(self, ) -> None:
         p = packet_factory.new_keep_packet()
         p = self.send_packet(p)
@@ -90,5 +99,5 @@ class Server_Connection():
     def offer_file(self, file_name: str, file_size: int, peer_id: int) -> bool:
         p = packet_factory.new_file_packet(file_name, file_size, peer_id)
         p = self.send_packet(p)
-        if "accepted" in p.response:
-            return p.response["accepted"]
+        if "sent" in p.response:
+            return p.response["sent"]

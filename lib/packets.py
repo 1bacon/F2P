@@ -1,9 +1,9 @@
-from collections import namedtuple
 from dataclasses import dataclass, field
 import enum
 import json
-import random
 from typing import Any
+
+from lib.netclient import Peer
 
 
 i = 0
@@ -34,6 +34,7 @@ class packet:
     params: dict = field(default_factory=dict)
     response: dict = field(default_factory=dict)
     responded: bool = False
+    server_side : bool = False
 
 
 class packet_factory:
@@ -64,11 +65,14 @@ class packet_encoder(json.JSONEncoder):
             return o.__dict__
         if isinstance(o, PACKET_TYPE):
             return o.value
+        if isinstance(o, Peer):
+            return o.__dict__
         return super().default(o)
 
 
 def packet_decoder(packet_dict: dict):
     if ("name" and "params" and "response") in packet_dict:
+        packet_dict["name"] = PACKET_TYPE._value2member_map_[packet_dict["name"]]
         return packet(**packet_dict)
     return packet_dict
 
