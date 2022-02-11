@@ -14,7 +14,7 @@ class Peer():
     socket: tuple[str, int]
 
 
-class Relay_Server():
+class Server_Connection():
 
     def __init__(self, ) -> None:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
