@@ -6,7 +6,7 @@ from typing import Any
 
 i = 0
 def next_int():
-    global i;i = i+1
+    global i;i = (i+1) % 1024
     return i-1
 
 class PACKET_TYPE(enum.Enum):
@@ -14,7 +14,6 @@ class PACKET_TYPE(enum.Enum):
     KEEP = "KEEP"
     PING = "PING"
     LIST = "LIST"
-    CHAT = "CHAT"
 
     def __eq__(self, __o: object) -> bool:
         return self.value == __o or ("value" in __o.__dir__() and __o.value == self.value)
@@ -35,9 +34,6 @@ class packet_factory:
     def new_list_packet():
         return packet(PACKET_TYPE.LIST)
     
-    def new_chat_packet(_msg : str = ""):
-        return packet(PACKET_TYPE.CHAT, params={"msg":_msg})
-
     def new_keep_packet():
         return packet(PACKET_TYPE.KEEP)
 
