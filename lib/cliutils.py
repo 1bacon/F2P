@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from netutils import Relay_Server
+from netutils import Server_Connection
 import cmd2
 
 class shell(cmd2.Cmd):
@@ -8,7 +8,7 @@ class shell(cmd2.Cmd):
         NotConnected = """Not connected to a Server yet.
         Please connect with 'connect <host> <port>'"""
 
-    def __init__(self, _server : Relay_Server):
+    def __init__(self, _server : Server_Connection):
         self.server = _server
 
     def do_list(self):
