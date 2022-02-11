@@ -51,8 +51,8 @@ def packet_decoder(packet_dict : dict):
     return packet_dict
 
 
-def loads_packet(_json : str):
+def loads_packet(_json : str) -> packet:
     return json.loads(_json, object_hook=packet_decoder)
 
-def dumps_packet(_packet : packet):
+def dumps_packet(_packet : packet) -> str:
     return json.dumps(_packet, cls=packet_encoder)
