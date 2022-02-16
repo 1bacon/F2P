@@ -22,9 +22,9 @@ class Peer_Server:
     def bind(self, hostname: str, port: int) -> None:
         self.sock.bind((hostname, port))
 
-    def start_accept_loop(self, stop_event : threading.Event) -> None:
+    def start_accept_loop(self, stop_event : threading.Event, event_passthrough: bool = True) -> None:
         self.accept_loop_ref = threading.Thread(
-            target=self.accept_loop, args=(stop_event,))
+            target=self.accept_loop, args=(stop_event,event_passthrough,))
         self.accept_loop_ref.start()
 
     def accept_loop(self, stop_event: threading.Event, event_passthrough : bool = True) -> None:
