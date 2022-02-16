@@ -1,4 +1,3 @@
-from msilib.schema import Error
 from threading import Event
 import lib.netclient as cl
 
