@@ -1,10 +1,8 @@
 from dataclasses import dataclass, field
 import enum
 import json
+from multiprocessing import connection
 from typing import Any
-
-from lib.netclient import Peer
-
 
 i = 0
 
@@ -13,6 +11,13 @@ def next_int():
     global i
     i = (i + 1) % 1024
     return i - 1
+
+
+@dataclass
+class Peer():
+    name: str
+    id: int
+    connection: tuple[str, int]
 
 
 class PACKET_TYPE(enum.Enum):
@@ -34,7 +39,7 @@ class packet:
     params: dict = field(default_factory=dict)
     response: dict = field(default_factory=dict)
     responded: bool = False
-    server_side : bool = False
+    server_side: bool = False
 
 
 class packet_factory:
@@ -72,7 +77,8 @@ class packet_encoder(json.JSONEncoder):
 
 def packet_decoder(packet_dict: dict):
     if ("name" and "params" and "response") in packet_dict:
-        packet_dict["name"] = PACKET_TYPE._value2member_map_[packet_dict["name"]]
+        packet_dict["name"] = PACKET_TYPE._value2member_map_[
+            packet_dict["name"]]
         return packet(**packet_dict)
     return packet_dict
 

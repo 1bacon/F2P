@@ -1,19 +1,13 @@
 import socket
-import time
 import threading
-from lib.packets import PACKET_TYPE
-from packets import packet_factory, packet, dumps_packet, loads_packet
+import time
 from dataclasses import dataclass
+
+from lib.packets import (PACKET_TYPE, dumps_packet, loads_packet, packet,
+                     packet_factory, Peer)
 
 RECV_SIZE = 1024
 PACKET_TIMEOUT = 10
-
-
-@dataclass
-class Peer():
-    name: str
-    id: int
-    socket: tuple[str, int]
 
 
 class Server_Connection():
@@ -46,7 +40,8 @@ class Server_Connection():
         if packet.server_side:
             # Only FILE should be serveside
             if not packet.name == PACKET_TYPE.FILE:
-                raise RuntimeError(f"Recieved server-side packet other than FILE. p={packet}")
+                raise RuntimeError(
+                    f"Recieved server-side packet other than FILE. p={packet}")
             return self.server_side_file(packet)
         if not packet.responded:
             raise RuntimeError(
@@ -86,7 +81,7 @@ class Server_Connection():
     def get_ping(self, ) -> float:
         p = packet_factory.new_ping_packet(time.time())
         p = self.send_packet(p)
-        time.time() - p.params["time"]
+        return time.time() - p.params["time"]
 
     def get_peers(self,) -> list[Peer]:
         p = packet_factory.new_list_packet()
