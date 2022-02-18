@@ -10,7 +10,7 @@ SOCKET_TIMEOUT = 0.5
 
 
 class Connetion_Peer(Peer):
-    socket : socket.socket = None
+    sock : socket.socket = None
     recv_loop_ref : threading.Thread = None
 
 class Peer_Server:
@@ -36,24 +36,24 @@ class Peer_Server:
                 continue
             print(f"New Connetion: {c[1]}")
             p = Connetion_Peer("", c[1][1], c[1])
-            p.recv_loop_ref = self.start_recv_loop(stop_event if event_passthrough else threading.Event())
-            p.socket = c[0]
             if p.id in self.clients:
-                raise RuntimeError(f"Client with id: {p.id} already connected at {p.socket}")
+                raise RuntimeError(f"Client with id: {p.id} already connected at {p.sock}")
             self.clients[p.id] = p
+            p.sock = c[0]
+            p.recv_loop_ref = self.start_recv_loop(p,stop_event if event_passthrough else threading.Event())
 
     def start_recv_loop(self, peer : Connetion_Peer, stop_event: threading.Event) -> threading.Thread:
         recv_loop_ref = threading.Thread(
             target=self.recv_loop, args=(peer,stop_event,))
         recv_loop_ref.stop_event = stop_event
-        self.recv_loop_ref.start()
+        recv_loop_ref.start()
         return recv_loop_ref
 
     def recv_loop(self, peer : Connetion_Peer, stop_event: threading.Event):
         while not stop_event.is_set():
             r = None
             try:
-                r = self.clients[list(self.clients.keys())[0]].recv(RECV_SIZE).decode("utf-8")
+                r = peer.sock.recv(RECV_SIZE).decode("utf-8")
             except TimeoutError:
                 print("Timed out")
                 continue
@@ -62,11 +62,11 @@ class Peer_Server:
                 continue
             print(f"Recieved Packet: {r}")
             rs = loads_packet(r)
-            self.handle_packet(rs)
+            self.handle_packet(rs, peer)
 
     def send_packet_to(self, packet: packet, peer: Connetion_Peer) -> None:
-        js = dumps_packet(packet)
-        self.sock.sendto(js, peer.socket)
+        js = dumps_packet(packet).encode("UTF-8")
+        peer.sock.sendall(js)
 
     def packet_keep(self, packet: packet, peer: Connetion_Peer) -> None:
         packet.responded = True
@@ -101,8 +101,9 @@ class Peer_Server:
 
     def handle_packet(self, packet: packet, peer: Peer) -> None:
         f_name = f"packet_{packet.name.value.lower()}"
-        if f_name in globals():
-            locals()[f_name](packet, peer)
-            self.send_response(packet, peer)
+        if hasattr(self,f_name):
+            getattr(self,f_name)(packet, peer)
+            packet.responded = True
+            self.send_packet_to(packet, peer)
         else:
-            raise NameError(f"Function for packet: {packet.name} not found!")
+            raise NameError(f"Function for packet: {packet.name} not found! {f_name=}")

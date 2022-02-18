@@ -1,7 +1,9 @@
-from dataclasses import dataclass, field
 import enum
 import json
+import socket
+from dataclasses import dataclass, field
 from multiprocessing import connection
+import threading
 from typing import Any
 
 i = 0
@@ -72,6 +74,10 @@ class packet_encoder(json.JSONEncoder):
             return o.value
         if isinstance(o, Peer):
             return o.__dict__
+        if isinstance(o, socket.socket):
+            return None
+        if isinstance(o, threading.Thread):
+            return None
         return super().default(o)
 
 

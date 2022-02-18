@@ -1,5 +1,5 @@
 # F2P
-## FTP over P2P
+## Peer2Peer File Transfer
 
 Creates a direct connection between two Hosts, to directly share files.
 Only needs a third Server for connecting.
